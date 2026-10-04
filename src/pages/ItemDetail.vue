@@ -8,6 +8,7 @@
           <span class="pill">{{ item.category }}</span>
           <span class="status-pill" :class="statusToneClass(item.status)">
             {{ formatItemStatus(item.status) }}
+            <small class="item-version">v{{ item.version }}</small>
           </span>
         </div>
         <h1>{{ item.title }}</h1>
@@ -29,26 +30,38 @@
         <UserBrief v-if="owner" :user="owner" />
 
         <div v-if="!isMine" class="exchange-box">
-          <label>
-            我的交换物
-            <select v-model="selectedItemId">
-              <option value="">选择一件我发布的可交换物品</option>
-              <option v-for="myItem in ownAvailableItems" :key="myItem.id" :value="myItem.id">
-                {{ myItem.title }}
-              </option>
-            </select>
-          </label>
-          <label>
-            留言
-            <textarea v-model="messageText" rows="3" />
-          </label>
-          <button class="primary-button" type="button" :disabled="item.status !== ItemStatus.AVAILABLE" @click="requestExchange">
-            发起交换
-          </button>
+          <p v-if="item.status === ItemStatus.RESERVED" class="exchange-box__notice">
+            物品已被交换请求预占（占用中），请等当前交换处理结果落定。
+          </p>
+          <p v-else-if="item.status !== ItemStatus.AVAILABLE" class="exchange-box__notice">
+            {{ formatStatusMessage(item.status) }}
+          </p>
+          <template v-else>
+            <label>
+              我的交换物
+              <select v-model="selectedItemId">
+                <option value="">选择一件我发布的可交换物品</option>
+                <option v-for="myItem in ownAvailableItems" :key="myItem.id" :value="myItem.id">
+                  {{ myItem.title }}
+                </option>
+              </select>
+            </label>
+            <label>
+              留言
+              <textarea v-model="messageText" rows="3" />
+            </label>
+            <button class="primary-button" type="button" @click="requestExchange">发起交换</button>
+            <p class="form-note">发起后双方物品会立即预占为“占用中”，直到对方处理。</p>
+          </template>
         </div>
-        <button v-else-if="item.status === ItemStatus.AVAILABLE" class="secondary-button" type="button" @click="offlineItem">
-          下架这件物品
-        </button>
+        <template v-else>
+          <button v-if="item.status === ItemStatus.AVAILABLE" class="secondary-button" type="button" @click="offlineItem">
+            下架这件物品
+          </button>
+          <p v-else-if="item.status === ItemStatus.RESERVED" class="exchange-box__notice">
+            这件物品正在交换流程中占用，暂时不能下架。
+          </p>
+        </template>
       </article>
     </div>
   </section>
@@ -62,12 +75,19 @@ import { RouterLink, useRoute } from 'vue-router';
 import EmptyState from '@/components/common/EmptyState.vue';
 import ItemImageGallery from '@/components/common/ItemImageGallery.vue';
 import UserBrief from '@/components/common/UserBrief.vue';
-import { ExchangeStatus } from '@/constants/exchange';
+import { ExchangeSaveState } from '@/constants/exchange';
 import { ItemStatus } from '@/constants/item';
+import { useStorageSync } from '@/hooks/useStorageSync';
 import { useAuthStore } from '@/stores/authStore';
 import { useExchangeStore } from '@/stores/exchangeStore';
 import { useItemStore } from '@/stores/itemStore';
-import { formatCondition, formatDate, formatItemStatus, statusToneClass } from '@/utils/formatters';
+import {
+  formatCondition,
+  formatDate,
+  formatItemStatus,
+  formatStatusMessage,
+  statusToneClass,
+} from '@/utils/formatters';
 import { message } from '@/utils/message';
 
 const route = useRoute();
@@ -91,18 +111,22 @@ const requestExchange = async () => {
     message('请选择一件自己的物品', 'error');
     return;
   }
-  await exchangeStore.create({
+  const exchange = await exchangeStore.create({
     from_user_id: authStore.currentUser.id,
     to_user_id: owner.value.id,
     from_item_id: selectedItemId.value,
     to_item_id: item.value.id,
-    status: ExchangeStatus.PENDING,
     message: messageText.value,
   });
+  // 保存失败时保留页面选择，便于直接在交换管理页重试
+  if (exchange && exchange.save_state === ExchangeSaveState.NORMAL) selectedItemId.value = '';
 };
 
 const offlineItem = async () => {
   if (!item.value) return;
   await itemStore.offline(item.value.id);
 };
+
+// 其他窗口的预占/处理结果会即时反映到详情页的占用状态
+useStorageSync(() => exchangeStore.refreshAll());
 </script>

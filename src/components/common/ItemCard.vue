@@ -4,7 +4,10 @@
     <div class="item-card__body">
       <div class="item-card__topline">
         <span class="pill">{{ item.category }}</span>
-        <span class="status-pill" :class="statusToneClass(item.status)">{{ formatItemStatus(item.status) }}</span>
+        <span class="status-pill" :class="statusToneClass(item.status)">
+          {{ formatItemStatus(item.status) }}
+          <small class="item-version">v{{ item.version }}</small>
+        </span>
       </div>
       <h3>{{ item.title }}</h3>
       <p>{{ item.description }}</p>

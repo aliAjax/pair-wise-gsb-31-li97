@@ -12,6 +12,8 @@ export const STORAGE_KEYS = {
   users: prefixed('users'),
   items: prefixed('items'),
   exchanges: prefixed('exchanges'),
+  /** 版本已前进时留下的冲突记录 */
+  exchangeConflicts: prefixed('exchange-conflicts'),
   theme: prefixed('theme'),
   lastClean: prefixed('last-clean'),
 };
@@ -97,5 +99,19 @@ export const storage = {
 
   createId(prefix: string): string {
     return `${prefix}_${crypto.randomUUID?.() ?? `${Date.now()}_${Math.random().toString(16).slice(2)}`}`;
+  },
+
+  /**
+   * 订阅其他窗口/标签页写入的存储变更。
+   * 两个窗口同时处理交换时，后完成的写入会通知先打开的页面刷新版本，
+   * 避免另一个窗口仍拿着旧版本继续覆盖。
+   */
+  subscribe(keys: string[], listener: (key: string) => void): () => void {
+    const keySet = new Set(keys);
+    const handler = (event: StorageEvent) => {
+      if (event.key && keySet.has(event.key)) listener(event.key);
+    };
+    window.addEventListener('storage', handler);
+    return () => window.removeEventListener('storage', handler);
   },
 };

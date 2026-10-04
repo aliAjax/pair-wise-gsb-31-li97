@@ -38,6 +38,7 @@
         <div class="stats-row">
           <span>发布 {{ myItems.length }}</span>
           <span>可交换 {{ availableCount }}</span>
+          <span>占用中 {{ reservedCount }}</span>
           <span>信用 {{ currentUser.credit_score }}</span>
         </div>
       </div>
@@ -67,10 +68,13 @@ import ItemCard from '@/components/common/ItemCard.vue';
 import UserBrief from '@/components/common/UserBrief.vue';
 import { ItemStatus } from '@/constants/item';
 import { useAuth } from '@/hooks/useAuth';
+import { useStorageSync } from '@/hooks/useStorageSync';
+import { useExchangeStore } from '@/stores/exchangeStore';
 import { useItemStore } from '@/stores/itemStore';
 
 const { currentUser, users, login, updateProfile } = useAuth();
 const itemStore = useItemStore();
+const exchangeStore = useExchangeStore();
 const selectedUserId = ref('');
 
 const form = reactive({
@@ -101,6 +105,10 @@ watch(
 
 const myItems = computed(() => (currentUser.value ? itemStore.myItems(currentUser.value.id) : []));
 const availableCount = computed(() => myItems.value.filter((item) => item.status === ItemStatus.AVAILABLE).length);
+const reservedCount = computed(() => myItems.value.filter((item) => item.status === ItemStatus.RESERVED).length);
+
+// 其他窗口处理交换后，我发布的物品占用状态同步刷新
+useStorageSync(() => exchangeStore.refreshAll());
 
 const save = async () => {
   await updateProfile({ ...form });

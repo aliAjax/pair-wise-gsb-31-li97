@@ -13,6 +13,8 @@
       <CategoryFilter v-model="itemStore.category" />
     </div>
 
+    <p class="list-note">列表同时展示「可交换」和「占用中」物品；占用中的物品正被交换请求预占，不能再发起新请求。</p>
+
     <div v-if="itemStore.visibleItems.length" class="waterfall">
       <ItemCard
         v-for="item in itemStore.visibleItems"
@@ -40,13 +42,19 @@ import EmptyState from '@/components/common/EmptyState.vue';
 import ItemCard from '@/components/common/ItemCard.vue';
 import { PAGE_MESSAGES } from '@/constants/messages';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
+import { useStorageSync } from '@/hooks/useStorageSync';
 import { useAuthStore } from '@/stores/authStore';
+import { useExchangeStore } from '@/stores/exchangeStore';
 import { useItemStore } from '@/stores/itemStore';
 
 const itemStore = useItemStore();
 const authStore = useAuthStore();
+const exchangeStore = useExchangeStore();
 const ownerOf = (userId: string) => authStore.users.find((user) => user.id === userId);
 const savedKeyword = useLocalStorage('reswap:last-home-keyword', '');
+
+// 别的窗口预占/处理物品后，首页立即拿到新的占用版本
+useStorageSync(() => exchangeStore.refreshAll());
 
 onMounted(() => {
   if (!itemStore.keyword && savedKeyword.value) {

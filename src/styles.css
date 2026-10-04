@@ -295,6 +295,29 @@ main {
   color: #365f84;
 }
 
+.status-conflict {
+  background: color-mix(in oklch, #b23b4f, transparent 80%);
+  color: #9b2c3f;
+}
+
+.stats-conflict,
+.stats-failed {
+  color: #9b2c3f;
+  font-weight: 700;
+}
+
+.item-version {
+  margin-left: 4px;
+  font-weight: 600;
+  opacity: 0.75;
+}
+
+.list-note {
+  margin: 0;
+  color: color-mix(in oklch, var(--rs-text), transparent 30%);
+  font-size: 0.85rem;
+}
+
 .gallery {
   display: grid;
   gap: 10px;
@@ -592,6 +615,58 @@ textarea {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+}
+
+.exchange-card--failed {
+  border-color: color-mix(in oklch, #b23b4f, transparent 45%);
+}
+
+.exchange-card__failure {
+  display: grid;
+  gap: 6px;
+  border-radius: 7px;
+  padding: 12px;
+  background: color-mix(in oklch, #b23b4f, transparent 90%);
+}
+
+.exchange-card__failure-hint {
+  font-size: 0.82rem;
+  color: color-mix(in oklch, var(--rs-text), transparent 30%);
+}
+
+.exchange-card__version {
+  color: color-mix(in oklch, var(--rs-text), transparent 40%);
+  font-size: 0.78rem;
+}
+
+.occupancy-tag {
+  justify-self: start;
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-size: 0.72rem;
+  font-style: normal;
+  font-weight: 700;
+}
+
+.conflict-card__versions {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+}
+
+.conflict-card__versions div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 0.85rem;
+}
+
+.exchange-box__notice {
+  border-radius: 7px;
+  padding: 10px 12px;
+  background: color-mix(in oklch, #bb7a35, transparent 86%);
+  color: #9b5c1c;
+  font-size: 0.9rem;
 }
 
 .profile-side {
