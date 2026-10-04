@@ -9,6 +9,7 @@ export const formatDate = (date: string) => dayjs(date).format('YYYY-MM-DD HH:mm
 export const formatItemStatus = (status: ItemStatus) => {
   const map: Record<ItemStatus, string> = {
     [ItemStatus.AVAILABLE]: '可交换',
+    [ItemStatus.LOCKED]: '预占中',
     [ItemStatus.EXCHANGED]: '已交换',
     [ItemStatus.OFFLINE]: '已下架',
   };
@@ -47,6 +48,15 @@ export const statusToneClass = (status: ItemStatus | ExchangeStatus) => {
   if (status === ItemStatus.OFFLINE || status === ExchangeStatus.REJECTED) return 'status-muted';
   if (status === ItemStatus.EXCHANGED || status === ExchangeStatus.COMPLETED) return 'status-done';
   return 'status-wait';
+};
+
+export const formatExchangeAction = (status: ExchangeStatus) => {
+  const map: Partial<Record<ExchangeStatus, string>> = {
+    [ExchangeStatus.ACCEPTED]: '同意',
+    [ExchangeStatus.REJECTED]: '拒绝',
+    [ExchangeStatus.COMPLETED]: '完成',
+  };
+  return map[status] ?? '处理';
 };
 
 export const formatStatusMessage = (status: ItemStatus | ExchangeStatus) => STATUS_MESSAGE_MAP[status];

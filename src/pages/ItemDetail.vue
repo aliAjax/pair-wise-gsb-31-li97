@@ -29,6 +29,9 @@
         <UserBrief v-if="owner" :user="owner" />
 
         <div v-if="!isMine" class="exchange-box">
+          <p v-if="item.status === ItemStatus.LOCKED" class="exchange-box__hint">
+            {{ STATUS_MESSAGE_MAP[ItemStatus.LOCKED] }}
+          </p>
           <label>
             我的交换物
             <select v-model="selectedItemId">
@@ -45,6 +48,11 @@
           <button class="primary-button" type="button" :disabled="item.status !== ItemStatus.AVAILABLE" @click="requestExchange">
             发起交换
           </button>
+          <div v-for="failed in exchangeStore.failedCreates" :key="failed.id" class="exchange-box__failed">
+            <span>上一次发起保存失败：{{ failed.reason }}</span>
+            <button type="button" @click="retryCreate(failed.id)">重试</button>
+            <button type="button" @click="exchangeStore.discardFailedCreate(failed.id)">放弃</button>
+          </div>
         </div>
         <button v-else-if="item.status === ItemStatus.AVAILABLE" class="secondary-button" type="button" @click="offlineItem">
           下架这件物品
@@ -64,6 +72,7 @@ import ItemImageGallery from '@/components/common/ItemImageGallery.vue';
 import UserBrief from '@/components/common/UserBrief.vue';
 import { ExchangeStatus } from '@/constants/exchange';
 import { ItemStatus } from '@/constants/item';
+import { STATUS_MESSAGE_MAP } from '@/constants/messages';
 import { useAuthStore } from '@/stores/authStore';
 import { useExchangeStore } from '@/stores/exchangeStore';
 import { useItemStore } from '@/stores/itemStore';
@@ -91,7 +100,7 @@ const requestExchange = async () => {
     message('请选择一件自己的物品', 'error');
     return;
   }
-  await exchangeStore.create({
+  const created = await exchangeStore.create({
     from_user_id: authStore.currentUser.id,
     to_user_id: owner.value.id,
     from_item_id: selectedItemId.value,
@@ -99,6 +108,16 @@ const requestExchange = async () => {
     status: ExchangeStatus.PENDING,
     message: messageText.value,
   });
+  // 发起成功会预占双方物品，刷新物品让列表/详情/交换记录看到同一份占用状态
+  await itemStore.hydrate();
+  if (created) {
+    selectedItemId.value = '';
+  }
+};
+
+const retryCreate = async (failedId: string) => {
+  await exchangeStore.retryCreate(failedId);
+  await itemStore.hydrate();
 };
 
 const offlineItem = async () => {

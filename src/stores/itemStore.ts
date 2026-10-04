@@ -33,6 +33,9 @@ export const useItemStore = defineStore('items', {
     myItems: (state) => (userId: string) => state.items.filter((item) => item.user_id === userId),
     availableMyItems: (state) => (userId: string) =>
       state.items.filter((item) => item.user_id === userId && item.status === ItemStatus.AVAILABLE),
+    /** 物品当前被哪条交换请求预占，列表/详情/交换记录共用同一份占用状态 */
+    lockedBy: (state) => (itemId: string) =>
+      state.items.find((item) => item.id === itemId)?.locked_by ?? null,
   },
   actions: {
     async hydrate() {

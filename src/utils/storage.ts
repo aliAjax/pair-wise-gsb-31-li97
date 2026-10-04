@@ -2,7 +2,8 @@ import { del, get, set } from 'idb-keyval';
 
 import type { PersistedEnvelope } from '@/types';
 
-const STORAGE_VERSION = 1;
+// v2：Item/Exchange 引入 version、locked_by、conflicts 字段，旧数据直接按种子重建
+const STORAGE_VERSION = 2;
 const DEFAULT_TTL = 1000 * 60 * 60 * 24 * 365;
 
 const prefixed = (key: string) => `reswap:${key}`;

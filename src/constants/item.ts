@@ -1,5 +1,6 @@
 export enum ItemStatus {
   AVAILABLE = 'available',
+  LOCKED = 'locked',
   EXCHANGED = 'exchanged',
   OFFLINE = 'offline',
 }
@@ -13,6 +14,7 @@ export enum ItemCondition {
 
 export const ITEM_STATUS_OPTIONS = [
   { label: '可交换', value: ItemStatus.AVAILABLE },
+  { label: '预占中', value: ItemStatus.LOCKED },
   { label: '已交换', value: ItemStatus.EXCHANGED },
   { label: '已下架', value: ItemStatus.OFFLINE },
 ];

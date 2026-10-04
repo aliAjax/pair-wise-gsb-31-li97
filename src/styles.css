@@ -594,6 +594,58 @@ textarea {
   gap: 8px;
 }
 
+.exchange-card__alert,
+.failed-creates__row,
+.exchange-box__failed {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border-radius: 7px;
+  padding: 10px 12px;
+  font-size: 0.85rem;
+  background: color-mix(in oklch, var(--rs-danger, #d64545), transparent 88%);
+  color: color-mix(in oklch, var(--rs-danger, #d64545), var(--rs-text) 25%);
+}
+
+.exchange-card__alert button,
+.failed-creates__row button,
+.exchange-box__failed button {
+  border: 1px solid currentColor;
+  border-radius: 6px;
+  background: transparent;
+  color: inherit;
+  padding: 3px 10px;
+  cursor: pointer;
+}
+
+.exchange-card__conflicts {
+  margin: 0;
+  padding: 10px 12px;
+  list-style: none;
+  display: grid;
+  gap: 6px;
+  border-radius: 7px;
+  background: color-mix(in oklch, var(--rs-primary), transparent 92%);
+  color: color-mix(in oklch, var(--rs-text), transparent 30%);
+  font-size: 0.8rem;
+}
+
+.failed-creates {
+  display: grid;
+  gap: 8px;
+}
+
+.exchange-box__hint {
+  margin: 0;
+  font-size: 0.85rem;
+  color: color-mix(in oklch, var(--rs-text), transparent 40%);
+}
+
+.exchange-box__failed {
+  grid-column: 1 / -1;
+}
+
 .profile-side {
   display: grid;
   gap: 18px;

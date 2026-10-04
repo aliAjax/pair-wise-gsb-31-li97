@@ -16,14 +16,27 @@ export const FORM_MESSAGES = {
   exchangeNeedOwnItem: '请先发布一件可交换物品',
 };
 
+export const EXCHANGE_FLOW_MESSAGES = {
+  created: '交换请求已发出，双方物品已预占',
+  accepted: '已同意交换',
+  rejected: '已拒绝交换，预占已释放',
+  completed: '交换已完成，双方物品状态已更新',
+  versionConflict: '版本已前进，本次操作未覆盖新结果，冲突已记录',
+  saveFailed: (reason: string) => `保存失败：${reason}，请求已保留，可重试`,
+  retryDone: '重试成功，状态已同步',
+  itemLocked: '物品已被其他交换请求预占',
+  targetNotAvailable: '目标物品当前不可交换',
+};
+
 export const LOG_MESSAGES = {
   storageHydrated: 'storage hydrated with status maps',
-  itemStatusUsed: `ItemStatus includes ${ItemStatus.AVAILABLE}, ${ItemStatus.EXCHANGED}, ${ItemStatus.OFFLINE}`,
+  itemStatusUsed: `ItemStatus includes ${ItemStatus.AVAILABLE}, ${ItemStatus.LOCKED}, ${ItemStatus.EXCHANGED}, ${ItemStatus.OFFLINE}`,
   exchangeStatusUsed: `ExchangeStatus includes ${ExchangeStatus.PENDING}, ${ExchangeStatus.ACCEPTED}, ${ExchangeStatus.REJECTED}, ${ExchangeStatus.COMPLETED}`,
 };
 
 export const STATUS_MESSAGE_MAP = {
   [ItemStatus.AVAILABLE]: '这件物品可发起交换',
+  [ItemStatus.LOCKED]: '这件物品已被交换请求预占',
   [ItemStatus.EXCHANGED]: '这件物品已完成交换',
   [ItemStatus.OFFLINE]: '这件物品已下架',
   [ExchangeStatus.PENDING]: '等待对方确认',

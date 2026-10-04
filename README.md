@@ -20,6 +20,16 @@ ReSwap 是一个纯前端以物换物 Web 应用。用户可以本地模拟登�
 - 个人中心，编辑资料、上传头像、查看我发布的物品。
 - 主题切换、全局错误处理和 Vant 提示。
 
+## 带版本的交换预占流程
+
+针对"同一件闲置被多人同时提交交换请求、两个窗口同时确认后状态对不上"的问题，交换流程按乐观锁设计：
+
+- **发起即预占**：`exchangeApi.create` 先把双方物品从 `available` 置为 `locked`（记录 `locked_by = 交换 id`），再落交换记录；任一步失败会回滚已占物品。物品列表、详情、交换卡片读取同一份 `status / locked_by`，占用状态三处一致。
+- **处理带版本**：每条 `Exchange` 有 `version`。`/exchanges` 页面打开时快照每条请求的版本，同意/拒绝/完成必须带上该版本；存储里的版本已前进时，`exchangeApi.transition` 不覆盖新结果，改为在该请求上追加 `conflicts` 冲突记录（动作、期望版本、实际版本、时间），并抛出 `VersionConflictError`。
+- **失败可重试**：保存失败时，`exchangeStore` 把这次请求和失败原因留在 `failedActions` / `failedCreates` 里，交换卡片和详情页提供"重试/放弃"，重试仍按原版本号校验。
+- **状态联动**：拒绝 → 双方物品释放回 `available`；完成 → 双方物品置为 `exchanged`。
+- 存储 `STORAGE_VERSION` 已升至 2，旧结构数据按种子重建。
+
 ## 启动与构建
 
 ```bash
@@ -82,6 +92,8 @@ src/
 
 定义位置：`src/constants/item.ts`
 
+取值：`AVAILABLE = 'available'`、`LOCKED = 'locked'`（预占中）、`EXCHANGED = 'exchanged'`、`OFFLINE = 'offline'`
+
 出现位置：
 
 - `src/models/item.ts`
@@ -92,6 +104,7 @@ src/
 - `src/router/guards.ts`
 - `src/utils/formatters.ts`
 - `src/components/common/ItemCard.vue`
+- `src/components/common/ExchangeCard.vue`
 - `src/pages/ItemDetail.vue`
 - `src/pages/Publish.vue`
 - `src/pages/Profile.vue`
@@ -124,7 +137,7 @@ src/
 - `ItemStatus` 与 `ExchangeStatus` 被模型、API、store、组件、页面、router guards、formatters 多处引用。
 - `utils/storage.ts` 是存储入口，但全应用 API 和 store 都依赖它的 key 与数据结构。
 
-例如新增 `ItemStatus.BOOKED` 时，应至少修改：`src/constants/item.ts`、`src/models/item.ts`、`src/api/itemApi.ts`、`src/api/exchangeApi.ts`、`src/stores/itemStore.ts`、`src/router/guards.ts`、`src/utils/formatters.ts`、`src/constants/messages.ts`、`src/components/common/ItemCard.vue`、`src/pages/ItemDetail.vue`、`src/pages/Publish.vue` 等文件。
+例如新增 `ItemStatus.BOOKED` 时，应至少修改：`src/constants/item.ts`、`src/models/item.ts`、`src/api/itemApi.ts`、`src/api/exchangeApi.ts`、`src/stores/itemStore.ts`、`src/router/guards.ts`、`src/utils/formatters.ts`、`src/constants/messages.ts`、`src/components/common/ItemCard.vue`、`src/components/common/ExchangeCard.vue`、`src/pages/ItemDetail.vue`、`src/pages/Publish.vue` 等文件。
 
 ## 环境变量
 
